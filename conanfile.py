@@ -17,7 +17,7 @@ class BgfxConan(ConanFile):
         self.run("git clone https://github.com/JoshuaBrookover/bgfx.cmake")
         copy_tree("bgfx.cmake", ".")
         self.run("git reset --hard 018bbc4")
-        self.run("git submodule update --init --recursive --depth=1")
+        self.run("git submodule update --init --recursive")
 
     def build(self):
         cmake          = CMake(self)
