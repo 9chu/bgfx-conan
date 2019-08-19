@@ -1,11 +1,12 @@
 from   conans       import ConanFile, CMake
 from   distutils.dir_util import copy_tree
 
+
 class BgfxConan(ConanFile):
     name            = "bgfx"
-    version         = "master"
+    version         = "20190604.018bbc4"
     description     = "Conan package for bgfx."
-    url             = "https://github.com/bkaradzic/bgfx"
+    url             = "https://github.com/9chu/bgfx-conan"
     license         = "BSD"
     settings        = "arch", "build_type", "compiler", "os"
     generators      = "cmake"
@@ -13,13 +14,10 @@ class BgfxConan(ConanFile):
     default_options = "shared=False"
 
     def source(self):
-        #self.run("git clone git://github.com/bkaradzic/bx.git")
-        #self.run("git clone git://github.com/bkaradzic/bimg.git")
-        #self.run("git clone git://github.com/bkaradzic/bgfx.git")
-        self.run("git clone git@github.com:firefalcom/bgfx.cmake.git")
-        self.run("cd bgfx.cmake && git checkout feature/opengl-version")
+        self.run("git clone https://github.com/JoshuaBrookover/bgfx.cmake")
         copy_tree("bgfx.cmake", ".")
-        self.run("git submodule update --init --recursive" )
+        self.run("git reset --hard 018bbc4")
+        self.run("git submodule update --init --recursive --depth=1")
 
     def build(self):
         cmake          = CMake(self)
@@ -28,7 +26,7 @@ class BgfxConan(ConanFile):
         tool_options   = "-DBGFX_BUILD_TOOLS=OFF" if self.settings.os == "Emscripten" else ""
         opengl_version = "-DBGFX_OPENGL_VERSION=33"
         self.run("cmake %s %s %s %s %s" % (cmake.command_line, shared_options, fixed_options, tool_options, opengl_version))
-        self.run("cmake --build . %s" % cmake.build_config)
+        self.run("cmake --build . %s -j8" % cmake.build_config)
 
     def collect_headers(self, include_folder):
         self.copy("*.h"  , dst="include", src=include_folder)
@@ -46,6 +44,7 @@ class BgfxConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libs = ["bgfxd", "bimgd", "bxd"] if self.settings.build_type == "Debug" else ["bgfx", "bimg", "bx"]
+        self.cpp_info.libs.extend(["astc-codec", "astc", "edtaa3", "etc1", "etc2", "iqa", "squish", "nvtt", "pvrtc"])
         if self.settings.os == "Macos":
             self.cpp_info.exelinkflags = ["-framework Cocoa", "-framework QuartzCore", "-framework OpenGL", "-weak_framework Metal"]
         if self.settings.os == "Linux":
